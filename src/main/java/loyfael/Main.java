@@ -21,9 +21,21 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class Main extends JavaPlugin implements Listener {
 
+  private String worldName;
+
   @Override
   public void onEnable() {
+    saveDefaultConfig();
+
+    worldName = getConfig().getString("world-name", "tuto");
+
     getServer().getPluginManager().registerEvents(this, this);
+
+    if (worldName == null || worldName.trim().isEmpty()) {
+      getLogger().info("LoyLecternFirstPage activated for all worlds.");
+    } else {
+      getLogger().info("LoyLecternFirstPage activated for the world: " + worldName);
+    }
   }
 
   @EventHandler
@@ -31,56 +43,56 @@ public class Main extends JavaPlugin implements Listener {
     Block clickedBlock = event.getClickedBlock();
     Player player = event.getPlayer();
 
-    // Vérifie que c'est un clic droit sur un bloc
     if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
       return;
     }
 
-    // Verify if the player is in the "tuto" world (You can change this to your desired world)
-    // If not, we do nothing. I need this functionality only for my tuto world.
-    if (!player.getWorld().getName().equals("tuto")) {
+    if (worldName != null && !worldName.trim().isEmpty() && !player.getWorld().getName().equals(worldName)) {
       return;
     }
 
+    // Verify if the clicked block is a lectern
+    // and if it contains a written book
+    // If so, open the book for the player
+    // and cancel the event to prevent default behavior
     if (clickedBlock != null && clickedBlock.getType() == Material.LECTERN) {
       BlockState state = clickedBlock.getState();
       if (state instanceof Lectern lectern) {
         ItemStack book = lectern.getInventory().getItem(0);
         if (book != null && book.getType() == Material.WRITTEN_BOOK) {
-          // Annule l'événement pour empêcher l'ouverture de l'interface du pupitre
           event.setCancelled(true);
 
-          // Ouvre le livre avec un léger délai pour s'assurer que l'interface du pupitre ne s'ouvre pas
           new BukkitRunnable() {
             @Override
             public void run() {
               player.openBook(book);
             }
-          }.runTaskLater(this, 1L); // 1 tick de délai
+          }.runTaskLater(this, 1L);
         }
       }
     }
   }
 
+  // This event is triggered when a player closes an inventory
   @EventHandler
   public void onInventoryClose(InventoryCloseEvent event) {
     Player player = (Player) event.getPlayer();
 
-    // Vérifie si le joueur est dans le monde "tuto"
-    if (!player.getWorld().getName().equals("tuto")) {
+    // verify if the player is in the correct world
+    if (worldName != null && !worldName.trim().isEmpty() && !player.getWorld().getName().equals(worldName)) {
       return;
     }
 
-    // Vérifie si l'inventaire fermé est celui d'un pupitre
+    // Verify if the closed inventory is a lectern
     if (event.getInventory().getType() == InventoryType.LECTERN) {
-      // Trouve le pupitre associé
+      // Find the lectern block from the inventory
       if (event.getInventory().getLocation() != null) {
         Block lecternBlock = event.getInventory().getLocation().getBlock();
         if (lecternBlock.getType() == Material.LECTERN) {
           BlockState state = lecternBlock.getState();
           if (state instanceof Lectern lectern) {
-            // Remet la page du pupitre à 1 quand le joueur ferme l'interface
-            lectern.setPage(0); // Page 0 = première page
+            // Verify if the lectern contains a written book
+            lectern.setPage(0); // Reset the lectern to the first page
             lectern.update();
           }
         }
