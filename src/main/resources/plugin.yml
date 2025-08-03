@@ -1,0 +1,7 @@
+name: LoyLecternFirstPage
+main: loyfael.Main
+version: '${project.version}'
+api-version: '1.21.8'
+author: loyfael
+description: A modern Paper plugin template for Minecraft 1.21+
+website: https://github.com/loyfael/LoyLecternFirstPage
