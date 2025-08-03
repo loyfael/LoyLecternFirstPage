@@ -3,5 +3,5 @@ main: loyfael.Main
 version: '${project.version}'
 api-version: '1.21.8'
 author: loyfael
-description: A modern Paper plugin template for Minecraft 1.21+
+description: Plugin that resets a lectern book to page one when closed
 website: https://github.com/loyfael/LoyLecternFirstPage
